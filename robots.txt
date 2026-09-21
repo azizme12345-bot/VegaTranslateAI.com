@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://translate-ik50exte2-azizme12345-6157.vercel.app/sitemap.xml

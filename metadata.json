@@ -1,0 +1,10 @@
+{
+  "name": "AI Translator",
+  "description": "Translate text between Urdu, English, Japanese and many other languages with AI. Use voice input, listen to translations, and review your last 5 saved translations in local history.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

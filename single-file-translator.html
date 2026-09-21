@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="OGCo78U0pHg7jiU5xCjpJoSIEbZhTalP8FQ9ZksFQ_c" />
+  <meta name="google-site-verification" content="e2RrqWDlKxHOPt0hT0SbW2dvhjsUgITfsuQwy6ZZhjY" />
+  <title>AI Voice & Text Translator (Single File)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    .urdu-font {
+      font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+      line-height: 2.2;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 selection:bg-blue-100 selection:text-blue-900">
+
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200 p-5 sm:p-8 space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md font-bold text-lg">
+          🌐
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">AI Voice & Text Translator</h1>
+          <p class="text-xs text-slate-500">اردو • English • پنجابی • 日本語 • العربية • हिन्दी</p>
+        </div>
+      </div>
+      <button onclick="clearAll()" class="text-xs text-slate-500 hover:text-red-600 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 border border-slate-200 transition">
+        🗑️ Clear
+      </button>
+    </div>
+
+    <!-- Language Selector Bar -->
+    <div class="flex items-center justify-between gap-2 sm:gap-4 bg-slate-100/80 p-2 rounded-xl border border-slate-200">
+      <div class="flex-1">
+        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Source Language</label>
+        <select id="sourceLang" class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="auto">Auto Detect</option>
+          <option value="ur-PK" selected>Urdu (اردو)</option>
+          <option value="en-US">English</option>
+          <option value="pa-PK">Punjabi (پنجابی)</option>
+          <option value="ja-JP">Japanese (日本語)</option>
+          <option value="ar-SA">Arabic (العربية)</option>
+          <option value="hi-IN">Hindi (हिन्दी)</option>
+        </select>
+      </div>
+
+      <button onclick="swapLanguages()" class="self-end mb-1 p-2 rounded-lg bg-white hover:bg-slate-200 border border-slate-300 transition text-slate-600" title="Swap Languages">
+        ⇄
+      </button>
+
+      <div class="flex-1">
+        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Target Language</label>
+        <select id="targetLang" class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="en-US" selected>English</option>
+          <option value="ur-PK">Urdu (اردو)</option>
+          <option value="pa-PK">Punjabi (پنجابی)</option>
+          <option value="ja-JP">Japanese (日本語)</option>
+          <option value="ar-SA">Arabic (العربية)</option>
+          <option value="hi-IN">Hindi (हिन्दी)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Input Box -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center text-xs font-semibold text-slate-600">
+        <span>Enter text or speak:</span>
+        <span id="charCount" class="text-slate-400">0 chars</span>
+      </div>
+      <div class="relative border-2 border-slate-200 rounded-xl focus-within:border-blue-500 transition-all bg-white overflow-hidden shadow-inner">
+        <textarea id="inputText" rows="4" placeholder="Type here or tap 'Speak' to talk in Urdu, English, Japanese, etc..." class="w-full p-4 text-slate-800 text-base outline-none resize-none bg-transparent placeholder-slate-400"></textarea>
+
+        <!-- Input Actions Toolbar -->
+        <div class="flex items-center justify-between px-3 py-2 bg-slate-50 border-t border-slate-100">
+          <div class="flex items-center space-x-2">
+            <!-- Voice Input Button -->
+            <button id="micBtn" onclick="toggleSpeech()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-blue-50 border border-slate-200 transition shadow-xs">
+              <span id="micIcon">🎤</span>
+              <span id="micText">Speak</span>
+            </button>
+            <button onclick="speakText('inputText', 'sourceLang')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 transition" title="Listen Input">
+              🔊
+            </button>
+          </div>
+          <button id="translateBtn" onclick="translateNow()" class="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition shadow-xs">
+            <span>Translate</span> ➔
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="hidden text-xs px-3 py-2 rounded-lg font-medium"></div>
+
+    <!-- Output Box -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center text-xs font-semibold text-slate-600">
+        <span>Translation:</span>
+        <div class="flex items-center space-x-2">
+          <button onclick="copyOutput()" class="text-slate-500 hover:text-blue-600 flex items-center space-x-1 text-xs px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition" title="Copy Translation">
+            📋 Copy
+          </button>
+          <button onclick="speakText('outputText', 'targetLang')" class="text-slate-500 hover:text-blue-600 flex items-center space-x-1 text-xs px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition" title="Listen Translation">
+            🔊 Listen
+          </button>
+        </div>
+      </div>
+      <div class="relative border-2 border-slate-200 rounded-xl bg-slate-50/70 p-4 min-h-[110px] flex items-center">
+        <div id="loadingIndicator" class="hidden absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center rounded-xl z-10">
+          <div class="flex items-center space-x-2 text-sm font-medium text-blue-600">
+            <span class="animate-spin text-lg">⏳</span>
+            <span>Translating...</span>
+          </div>
+        </div>
+        <p id="outputText" class="text-slate-800 text-base leading-relaxed w-full whitespace-pre-wrap select-all"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let recognition = null;
+    let isListening = false;
+
+    const inputArea = document.getElementById('inputText');
+    const outputArea = document.getElementById('outputText');
+    const micBtn = document.getElementById('micBtn');
+    const micText = document.getElementById('micText');
+    const statusMsg = document.getElementById('statusMessage');
+    const charCount = document.getElementById('charCount');
+    const loader = document.getElementById('loadingIndicator');
+
+    inputArea.addEventListener('input', () => {
+      charCount.innerText = `${inputArea.value.length} chars`;
+    });
+
+    function showStatus(text, isError = false) {
+      statusMsg.innerText = text;
+      statusMsg.className = `text-xs px-3 py-2 rounded-lg font-medium block ${
+        isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+      }`;
+      if (!isError) {
+        setTimeout(() => { statusMsg.className = 'hidden'; }, 4000);
+      }
+    }
+
+    function initSpeech() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showStatus("Speech recognition is not supported in this browser. Please use Google Chrome.", true);
+        return null;
+      }
+      const recog = new SpeechRecognition();
+      recog.continuous = false;
+      recog.interimResults = true;
+
+      recog.onstart = () => {
+        isListening = true;
+        micBtn.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 animate-pulse transition shadow-xs";
+        micText.innerText = "Listening...";
+        showStatus("🎙️ Listening... Speak now!");
+      };
+
+      recog.onresult = (event) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        inputArea.value = transcript;
+        charCount.innerText = `${transcript.length} chars`;
+      };
+
+      recog.onerror = (event) => {
+        if (event.error === 'no-speech') {
+          showStatus("No speech detected. Please speak into the mic.", true);
+        } else if (event.error === 'not-allowed') {
+          showStatus("Microphone permission was denied. Please allow mic access in your browser.", true);
+        } else if (event.error !== 'aborted') {
+          showStatus("Mic Error: " + event.error, true);
+        }
+        resetMicState();
+      };
+
+      recog.onend = () => {
+        resetMicState();
+      };
+
+      return recog;
+    }
+
+    function resetMicState() {
+      isListening = false;
+      micBtn.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-blue-50 border border-slate-200 transition shadow-xs";
+      micText.innerText = "Speak";
+    }
+
+    function toggleSpeech() {
+      if (isListening) {
+        if (recognition) recognition.stop();
+        resetMicState();
+        return;
+      }
+
+      if (!recognition) {
+        recognition = initSpeech();
+      }
+      if (!recognition) return;
+
+      const src = document.getElementById('sourceLang').value;
+      recognition.lang = src === 'auto' ? 'ur-PK' : src;
+
+      try {
+        recognition.start();
+      } catch (e) {
+        recognition.stop();
+        setTimeout(() => recognition.start(), 200);
+      }
+    }
+
+    async function translateNow() {
+      const text = inputArea.value.trim();
+      if (!text) {
+        showStatus("Please enter or speak some text first!", true);
+        return;
+      }
+
+      const src = document.getElementById('sourceLang').value.split('-')[0];
+      const target = document.getElementById('targetLang').value.split('-')[0];
+
+      loader.classList.remove('hidden');
+      statusMsg.className = 'hidden';
+
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let result = "";
+        data[0].forEach(item => {
+          if (item[0]) result += item[0];
+        });
+        outputArea.innerText = result;
+
+        if (target === 'ur' || target === 'pa' || target === 'ar') {
+          outputArea.classList.add('urdu-font');
+          outputArea.setAttribute('dir', 'rtl');
+        } else {
+          outputArea.classList.remove('urdu-font');
+          outputArea.setAttribute('dir', 'ltr');
+        }
+      } catch (err) {
+        outputArea.innerText = "Error: Failed to fetch translation. Please check internet connection.";
+      } finally {
+        loader.classList.add('hidden');
+      }
+    }
+
+    function speakText(textareaId, langSelectId) {
+      const text = (document.getElementById(textareaId).value || document.getElementById(textareaId).innerText).trim();
+      if (!text) return;
+      if (!('speechSynthesis' in window)) {
+        alert("Text to speech not supported");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const lang = document.getElementById(langSelectId).value;
+      utterance.lang = lang === 'auto' ? 'en-US' : lang;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function copyOutput() {
+      const text = outputArea.innerText.trim();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        showStatus("✅ Translation copied to clipboard!");
+      });
+    }
+
+    function clearAll() {
+      inputArea.value = "";
+      outputArea.innerText = "";
+      charCount.innerText = "0 chars";
+      statusMsg.className = "hidden";
+    }
+
+    function swapLanguages() {
+      const s = document.getElementById('sourceLang');
+      const t = document.getElementById('targetLang');
+      if (s.value === 'auto') return;
+      const temp = s.value;
+      s.value = t.value;
+      t.value = temp;
+    }
+  </script>
+</body>
+</html>
